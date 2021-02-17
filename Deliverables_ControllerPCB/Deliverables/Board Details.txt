@@ -1,0 +1,16 @@
+Board details
+Dimensions: 181.2 mm x 62.5 mm
+Component Top: 82
+Components Bottom: 0
+Pads: 331
+Layers:2
+Unique Parts: 30
+SMT Parts: 62
+Through-Hole Parts: 20
+Mounting holes: 4
+Vias: 81
+Track segments: 648
+Nodes: 253
+Nets: 99
+
+No DRC errors
