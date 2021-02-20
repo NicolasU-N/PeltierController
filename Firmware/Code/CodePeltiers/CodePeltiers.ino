@@ -49,16 +49,27 @@
    Addresses:
    Device          Hex          Binary
    ======================================
-   DAC081C081      0xD          00001101
-   PCF8574ADWR     0x20
+   DAC081C081      0xD          0b0001101
+   PCF8574ADWR     0x38         0b0111000
+   ADS1115         0x48         0b1001000 (T1-T4 GND)
+   ADS1115         0x49         0b1001001 (T5-T8 VDD)
+   ADS1115         0x4A         0b1001010 (T9-T10 SDA)OUTPUT   
+   ADS1115         0x4B         0b1001011 (SENSORS SCL)   
 */
 #include "Arduino.h"
 #include <Wire.h>
 #include <Adafruit_ADS1015.h>
 #include "PCF8574.h"
 
+#define ADDR_DAC 0b0001101
+#define ADDR_PCF 0b0111000
+#define ADDR_ADS0 0b1001000
+#define ADDR_ADS1 0b1001001
+#define ADDR_ADS2 0b1001010
+#define ADDR_ADS3 0b1001011
+
 // Set i2c HEX address
-PCF8574 pcf8574(0x20);
+PCF8574 pcf8574a(ADDR_PCF);
 unsigned long timeElapsed;
 
 //void setup(){
@@ -84,15 +95,19 @@ void setup() {
 }
 
 void loop() {
+
+  
   // put your main code here, to run repeatedly:
 
 }
 
 
-// data 0...255
-void DAC8Bit(byte data) { 
-  Wire.beginTransmission(0xD); // Transmit to addres 0xD (00001101)  device address is specified in datasheet GND
-  Wire.write( (data >> 4) & 15);
-  Wire.write( (data << 4) & 240);
-  Wire.endTransmission();
+void DAC_SENDBYTE(uint8_t data) {
+  uint8_t upperdata = (data >> 4) & 0b00001111; //Force into normal mode, then upper 4 bits of data
+  uint8_t lowerdata = (data << 4) & 0b11110000; //retain lower 4 bits of data, then 4 don't care
+
+  Wire.beginTransmission(ADDR_DAC); // Transmit to addres 0xD (0001101)  device address is specified in datasheet GND
+  Wire.write(upperdata);      
+  Wire.write(lowerdata);       
+  Wire.endTransmission();      // stop transmitting
 }
