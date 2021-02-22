@@ -17,7 +17,7 @@
    https://forum.arduino.cc/index.php?topic=604731.0
 
    //busqueda CONTROLLER PELTIERS ARDUINO
-   
+
    TODO
    ====
  * * Realizar funciones para las lecturas de sensores.
@@ -53,8 +53,8 @@
    PCF8574ADWR     0x38         0b0111000
    ADS1115         0x48         0b1001000 (T1-T4 GND)
    ADS1115         0x49         0b1001001 (T5-T8 VDD)
-   ADS1115         0x4A         0b1001010 (T9-T10 SDA)OUTPUT   
-   ADS1115         0x4B         0b1001011 (SENSORS SCL)   
+   ADS1115         0x4A         0b1001010 (T9-T10 SDA)OUTPUT
+   ADS1115         0x4B         0b1001011 (SENSORS SCL)
 */
 #include "Arduino.h"
 #include <Wire.h>
@@ -96,18 +96,48 @@ void setup() {
 
 void loop() {
 
-  
+
   // put your main code here, to run repeatedly:
 
 }
 
+/*
 
-void DAC_SENDBYTE(uint8_t data) {
+*/
+void dacSendByte(uint8_t data) {
   uint8_t upperdata = (data >> 4) & 0b00001111; //Force into normal mode, then upper 4 bits of data
   uint8_t lowerdata = (data << 4) & 0b11110000; //retain lower 4 bits of data, then 4 don't care
 
   Wire.beginTransmission(ADDR_DAC); // Transmit to addres 0xD (0001101)  device address is specified in datasheet GND
-  Wire.write(upperdata);      
-  Wire.write(lowerdata);       
+  Wire.write(upperdata);
+  Wire.write(lowerdata);
   Wire.endTransmission();      // stop transmitting
 }
+
+/*
+
+*/
+void readRpmSensorPump(uint8_t data) {
+  uint8_t upperdata = (data >> 4) & 0b00001111; //Force into normal mode, then upper 4 bits of data
+  uint8_t lowerdata = (data << 4) & 0b11110000; //retain lower 4 bits of data, then 4 don't care
+
+  Wire.beginTransmission(ADDR_DAC); // Transmit to addres 0xD (0001101)  device address is specified in datasheet GND
+  Wire.write(upperdata);
+  Wire.write(lowerdata);
+  Wire.endTransmission();      // stop transmitting
+}
+
+
+/*
+  readPumpRpm
+  readFlowMeter
+  readSpareDigitalInput(uint8_t s)
+  writeOnPump(bool)
+  readTempSenAp(uint8_t  0 or 1)
+  readTempSenFm()
+  readSpareAnalogInput(uint8_t s) (Se configura como thermistor)
+  readTempPel(uint8_t)
+  readTempOut(uint8_t)
+  writeTempPel(uint8_t val,uint8_t n)
+  readSerialPort
+*/
