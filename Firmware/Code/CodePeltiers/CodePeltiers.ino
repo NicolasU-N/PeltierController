@@ -22,7 +22,7 @@
    ====
  * * Realizar funciones para las lecturas de sensores.
  * * Realizar funcion para escuchar del puerto serie.
- * * Crear TaskHandler.
+ * * .
 */
 
 /**
@@ -68,9 +68,20 @@
 #define ADDR_ADS2 0b1001010
 #define ADDR_ADS3 0b1001011
 
+TaskHandle_t Task1;
+
 // Set i2c HEX address
 PCF8574 pcf8574a(ADDR_PCF);
-unsigned long timeElapsed;
+Adafruit_ADS1115 ads0; // 0...32768
+Adafruit_ADS1115 ads1;
+Adafruit_ADS1115 ads2;
+Adafruit_ADS1115 ads3;
+
+
+volatile int countR = 0;
+volatile int countF = 0;
+uint16_t pumpRpm = 0;
+uint16_t flowLPM = 0;
 
 //void setup(){
 //  Serial.begin(9600);
@@ -88,17 +99,49 @@ unsigned long timeElapsed;
 //  delay(50);
 //}
 
+void codeForTask1( void * parameter )
+{
+  for (;;) { // loop
+    blink(LED1, 1000);
+    delay(50);
+    Serial.println("Task 1: ");
+  }
+}
 
 void setup() {
-  // put your setup code here, to run once:
+  pcf8574.pinMode(P1, INPUT);
+  pcf8574.pinMode(P2, INPUT);
+  pcf8574.pinMode(P3, INPUT);
+  pcf8574.pinMode(P5, OUTPUT);
+  pcf8574.pinMode(P7, INPUT_PULLUP);
+  pcf8574.pinMode(P6, INPUT);
   pcf8574.begin();
+  ads0.begin();
+  ads1.begin();
+  ads2.begin();
+  ads3.begin();
+
+  xTaskCreatePinnedToCore(
+    codeForTask1,
+    "Send feedback of machine status by Serial port",
+    1000,
+    NULL,
+    1,
+    &Task1,
+    1);
+
+
 }
 
 void loop() {
 
+  //  int16_t adc0, adc1, adc2, adc3;
+  //
+  //  adc0 = ads.readADC_SingleEnded(0);
+  //  adc1 = ads.readADC_SingleEnded(1);
 
-  // put your main code here, to run repeatedly:
-
+  readCountRpmFlow();
+  readPumpRpmAndFlowMeter();
 }
 
 /*
@@ -114,19 +157,30 @@ void dacSendByte(uint8_t data) {
   Wire.endTransmission();      // stop transmitting
 }
 
+void  readPumpRpmAndFlowMeter() {
+  static unsigned long previousMillis = 0;
+  if ((millis() - previousMillis) >= 1000) { // Millise
+    previousMillis += millis();
+    pumpRpm = countR * 30; // 2 pulses per turn (60/2)
+    countR = 0;
+    flowLPM = countF * 0.283; // LPM = 0.283 x Hz
+    countF = 0;
+  }
+}
+
 /*
 
 */
-void readRpmSensorPump(uint8_t data) {
-  uint8_t upperdata = (data >> 4) & 0b00001111; //Force into normal mode, then upper 4 bits of data
-  uint8_t lowerdata = (data << 4) & 0b11110000; //retain lower 4 bits of data, then 4 don't care
-
-  Wire.beginTransmission(ADDR_DAC); // Transmit to addres 0xD (0001101)  device address is specified in datasheet GND
-  Wire.write(upperdata);
-  Wire.write(lowerdata);
-  Wire.endTransmission();      // stop transmitting
+void readCountRpmFlow() {
+  static unsigned long previousMillis = 0;
+  if ((millis() - previousMillis) >= 1) { // Millise
+    previousMillis += millis();
+    uint8_t val = pcf8574.digitalRead(P6);
+    if (val == HIGH) countR++;
+    uint8_t val = pcf8574.digitalRead(P7);
+    if (val == HIGH) countF++;
+  }
 }
-
 
 /*
   readPumpRpm
