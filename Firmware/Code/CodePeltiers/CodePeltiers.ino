@@ -1,26 +1,22 @@
 /**
    PELTIER TEMPERATURE CONTROL
    Board: ESP32-WROOM32
-   Last Modified: 16 Feb 2021
+   Last Modified: 25 Feb 2021
 
    Links:
    https://e2e.ti.com/support/data-converters/f/73/t/591378?DAC121C081-Issue-with-DAC-programming-in-Energia-and-Tiva-C-series
    https://e2e.ti.com/support/data-converters/f/73/t/581078
    https://www.overclock.net/threads/very-simple-koolance-arduino-flow-meter.1625912/
-   https://koolance.com/coolant-flow-meter-stainless-steel-with-temperature-sensor-sen-fm18t10
    https://forum.seeedstudio.com/t/arduino-controlled-pc-water-cooling-system-info-center/14484
    https://groups.google.com/g/diy-pid-control/c/oBwd3F-Hnac
 
-   https://github.com/adafruit/Adafruit_ADS1X15/blob/master/examples/singleended/singleended.ino
-
-   https://benkrasnow.blogspot.com/2009/09/peltier-power-supply-and-integrated-pid.html //opcional
+   //opcional
    https://forum.arduino.cc/index.php?topic=604731.0
 
-   //busqueda CONTROLLER PELTIERS ARDUINO
 
    TODO
    ====
- * * Realizar funciones para las lecturas de sensores.
+ * * .
  * * Realizar funcion para escuchar del puerto serie.
  * * .
 */
@@ -71,38 +67,40 @@
 TaskHandle_t Task1;
 
 // Set i2c HEX address
-PCF8574 pcf8574a(ADDR_PCF);
-Adafruit_ADS1115 ads0; // 0...32768
-Adafruit_ADS1115 ads1;
-Adafruit_ADS1115 ads2;
-Adafruit_ADS1115 ads3;
-
+PCF8574 pcf8574(ADDR_PCF);
+Adafruit_ADS1115 ads0(ADDR_ADS0);
+Adafruit_ADS1115 ads1(ADDR_ADS1);
+Adafruit_ADS1115 ads2(ADDR_ADS2);
+Adafruit_ADS1115 ads3(ADDR_ADS3);
 
 volatile int countR = 0;
 volatile int countF = 0;
 uint16_t pumpRpm = 0;
 uint16_t flowLPM = 0;
 
-//void setup(){
-//  Serial.begin(9600);
 //
-//  pcf8574.pinMode(P0, INPUT);
-//  pcf8574.pinMode(P1, OUTPUT);
-//
-//  pcf8574.begin();
-//}
-//
-//void loop(){
-//  uint8_t val = pcf8574.digitalRead(P1);            // Read the value of pin P0
-//  if (val == HIGH)  pcf8574.digitalWrite(P0, HIGH); // If Button is Pressed
-//  else              pcf8574.digitalWrite(P0, LOW);  // When Button is Released
-//  delay(50);
-//}
+float tempsPel[10];
+
+float r1 = 10000;
+float logR2, r2, temp;
+float c1 = 0.8483323763e-03, c2 = 2.581286591e-04, c3 = 1.641220112e-07;
+//https://www.thinksrs.com/downloads/programs/Therm%20Calc/NTCCalibrator/NTCcalculator.htm
+
+
+////////////////////////
+//       STATES       //
+////////////////////////
+#define INITMODE    0
+#define STARTMODE   1
+#define IDLEMODE    2
+#define COOLINGMODE 3
+
+uint8_t state = INITMODE;
 
 void codeForTask1( void * parameter )
 {
   for (;;) { // loop
-    blink(LED1, 1000);
+    //  blink(LED1, 1000);
     delay(50);
     Serial.println("Task 1: ");
   }
@@ -130,18 +128,32 @@ void setup() {
     &Task1,
     1);
 
-
 }
 
 void loop() {
 
-  //  int16_t adc0, adc1, adc2, adc3;
-  //
-  //  adc0 = ads.readADC_SingleEnded(0);
-  //  adc1 = ads.readADC_SingleEnded(1);
+  switch (state) {
+    case INITMODE:
+      // statements
+      break;
+    case STARTMODE:
+      // statements
+      break;
+    case IDLEMODE:
+      // statements
+      break;
+    case COOLINGMODE:
+      // statements
+      break;
+  }
+
+  //CONTROL TEMP
+  //Implement state switch
+
 
   readCountRpmFlow();
   readPumpRpmAndFlowMeter();
+
 }
 
 /*
@@ -177,21 +189,109 @@ void readCountRpmFlow() {
     previousMillis += millis();
     uint8_t val = pcf8574.digitalRead(P6);
     if (val == HIGH) countR++;
-    uint8_t val = pcf8574.digitalRead(P7);
-    if (val == HIGH) countF++;
+    uint8_t val1 = pcf8574.digitalRead(P7);
+    if (val1 == HIGH) countF++;
   }
 }
 
 /*
-  readPumpRpm
-  readFlowMeter
-  readSpareDigitalInput(uint8_t s)
-  writeOnPump(bool)
-  readTempSenAp(uint8_t  0 or 1)
-  readTempSenFm()
-  readSpareAnalogInput(uint8_t s) (Se configura como thermistor)
-  readTempPel(uint8_t)
-  readTempOut(uint8_t)
-  writeTempPel(uint8_t val,uint8_t n)
+
+*/
+uint8_t readSpareDigitalInput(uint8_t port) {
+  uint8_t val = pcf8574.digitalRead(port);
+  return val;
+}
+
+/*
+
+*/
+void writeOnPump(uint8_t state) {
+  pcf8574.digitalWrite(P5, state);
+}
+
+/*
+  port 0...3
+*/
+float readTempSenAp(uint8_t port, bool isNTC) {
+  if (isNTC) {
+    float vout = (float)ads3.readADC_SingleEnded(port) * (3.3 / 32767); //0...32767 resolution
+    float R_NTC = (vout * 10000) / (3.3 - vout); //calculating the resistance of the thermistor
+    float Temp_K = (298.15 * 3293.79) / (298.15 * log(R_NTC / 10000) + 3293.79); //Temperature in Kelvin B_param and T0 = 25C TO K
+    float Temp_C = Temp_K - 273.15; //converting into Celsius
+    return Temp_C;
+  } else {
+    return (float)ads3.readADC_SingleEnded(port);
+  }
+}
+
+/*
+  0...9
+*/
+float readTempPel(uint8_t number) {
+  float vout = 0;
+  if (number >= 0 and number <= 3) { //T1-T4
+    vout = (float)ads0.readADC_SingleEnded(number) * (3.3 / 32767); //0...32767 resolution
+  } else if (number > 3  and number <= 7) { //T5-T8
+    vout = (float)ads1.readADC_SingleEnded(number - 4) * (3.3 / 32767); //0...32767 resolution
+  } else if (number > 7) { //T9-T10
+    vout = (float)ads2.readADC_SingleEnded(number - 8) * (3.3 / 32767); //0...32767 resolution
+  }
+  float R_NTC = (vout * 10000) / (3.3 - vout); //calculating the resistance of the thermistor
+  float Temp_K = (298.15 * 3799.42) / (298.15 * log(R_NTC / 10000) + 3799.42); //Temperature in Kelvin B_param and T0 = 25C TO K
+  float Temp_C = Temp_K - 273.15; //converting into Celsius
+  return Temp_C;
+}
+
+/*
+   0...3
+*/
+float writeTempPel(uint8_t number) {
+  float vout = 0;
+  if (number >= 0 and number <= 3) { //T1-T4
+    vout = (float)ads0.readADC_SingleEnded(number) * (3.3 / 32767); //0...32767 resolution
+  } else if (number > 3  and number <= 7) { //T5-T8
+    vout = (float)ads1.readADC_SingleEnded(number - 4) * (3.3 / 32767); //0...32767 resolution
+  } else if (number > 7) { //T9-T10
+    vout = (float)ads2.readADC_SingleEnded(number - 8) * (3.3 / 32767); //0...32767 resolution
+  }
+
+  if (sensors.getTempCByIndex(0) < lowtemp) {
+    digitalWrite(relay1, HIGH);
+    // ADD PWM
+
+  }
+  if (sensors.getTempCByIndex(0) > hightemp) {
+    digitalWrite(relay1, LOW);
+
+  }
+}
+
+/*
+  int PWM_FREQUENCY = 1000; // this variable is used to define the time period
+  int PWM_CHANNEL = 0; // this variable is used to select the channel number
+  int PWM_RESOUTION = 8; // this will define the resolution of the signal which is 8 in this case
+  int GPIOPIN = 15 ; // GPIO to which we want to attach this channel signal
+  int dutyCycle = 127; // it will define the width of signal or also the one time
+
+  void setup()
+  {
+
+  ledcSetup(PWM_CHANNEL, PWM_FREQUENCY, PWM_RESOUTION);
+  ledcAttachPin(GPIOPIN, PWM_CHANNEL);
+
+
+  }
+
+  void loop()
+  {
+
+  ledcWrite(PWM_CHANNEL, dutyCycle);
+
+  }
+*/
+
+
+/*
+  readAllSensor
   readSerialPort
 */
