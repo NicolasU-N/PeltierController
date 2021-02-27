@@ -1,22 +1,11 @@
 /**
    PELTIER TEMPERATURE CONTROL
-   Board: ESP32-WROOM32
-   Last Modified: 25 Feb 2021
-
-   Links:
-   https://e2e.ti.com/support/data-converters/f/73/t/591378?DAC121C081-Issue-with-DAC-programming-in-Energia-and-Tiva-C-series
-   https://e2e.ti.com/support/data-converters/f/73/t/581078
-   https://www.overclock.net/threads/very-simple-koolance-arduino-flow-meter.1625912/
-   https://forum.seeedstudio.com/t/arduino-controlled-pc-water-cooling-system-info-center/14484
-   https://groups.google.com/g/diy-pid-control/c/oBwd3F-Hnac
-
-   //opcional
-   https://forum.arduino.cc/index.php?topic=604731.0
+   Board: ESP32-WROOM32   
 
    TODO
    ====
  * * .
- * * Realizar funcion para escuchar del puerto serie.
+ * * .
  * * .
 */
 
@@ -70,8 +59,8 @@
 #define S4_C1 13
 #define S4_C2 4
 
-#define ADDR_DAC 0b0001101
-#define ADDR_PCF 0b0111000
+#define ADDR_DAC  0b0001101
+#define ADDR_PCF  0b0111000
 #define ADDR_ADS0 0b1001000
 #define ADDR_ADS1 0b1001001
 #define ADDR_ADS2 0b1001010
@@ -120,227 +109,48 @@ float wcTemp = 6; //default
 //       STATES       //
 ////////////////////////
 #define INITMODE    0
-#define STARTMODE   1
-#define IDLEMODE    2
-#define COOLINGMODE 3
+#define IDLEMODE    1
+#define COOLINGMODE 2
+#define STOPALL     3
 
 uint_fast8_t state = INITMODE;
 
 void codeForTask1( void * parameter )
 {
   for (;;) { // loop
-
-    Serial.write("->WELCOME");
-    Serial.write("->Please enter idle temperature: ");
-
+    Serial.print("->WELCOME");
+    Serial.print("->Please enter idle temperature: ");
     if (Serial.available()) {
       _bytes = Serial.readString();
       String e0 = s.separa(_bytes, ',', 0);
       String e1 = s.separa(_bytes, ',', 1);
       if (e0 == "st") {
         if (e1 == "all") {
-          char* buf0 = "" ;
-          char* buf1 = "" ;
-          char* buf2 = "" ;
-          char* buf3 = "" ;
-          char* buf4 = "" ;
-          char* buf5 = "" ;
-          char* buf6 = "" ;
-          char* buf7 = "" ;
-          char* buf8 = "" ;
-          char* buf9 = "" ;
-          char* buf10 = "" ;
-          char* buf11 = "" ;
-          char* buf12 = "" ;
-          char* buf13 = "" ;
-          char* buf14 = "" ;
-          char* buf15 = "" ;
-          char* buf16 = "" ;
-          char* buf17 = "" ;
-          char* buf18 = "" ;
-          char* buf19 = "" ;
-          char* buf20 = "" ;
-          dtostrf(tempsPel[0], 10, 3, buf0); //Peltiers
-          dtostrf(tempsPel[1], 10, 3, buf1); //Peltiers
-          dtostrf(tempsPel[2], 10, 3, buf2); //Peltiers
-          dtostrf(tempsPel[3], 10, 3, buf3); //Peltiers
-          dtostrf(tempsPel[4], 10, 3, buf4); //Peltiers
-          dtostrf(tempsPel[5], 10, 3, buf5); //Peltiers
-          dtostrf(tempsPel[6], 10, 3, buf6); //Peltiers
-          dtostrf(tempsPel[7], 10, 3, buf7); //Peltiers
-          dtostrf(tempsPel[8], 10, 3, buf8); //Peltiers
-          dtostrf(tempsPel[9], 10, 3, buf9); //Peltiers
-          dtostrf(pumpState, 10, 3, buf10);
-          dtostrf(pumpRpm, 10, 3, buf11);
-          dtostrf(flowLPM, 10, 3, buf12);
-          dtostrf(spareDigitalInput[0], 10, 3, buf13);
-          dtostrf(spareDigitalInput[1], 10, 3, buf14);
-          dtostrf(spareDigitalInput[2], 10, 3, buf15);
-          dtostrf(tempSenAp[0], 10, 3, buf16);
-          dtostrf(tempSenAp[1], 10, 3, buf17);
-          dtostrf(tempSenAp[2], 10, 3, buf18);
-          dtostrf(tempSenAp[3], 10, 3, buf19);
-          dtostrf((float)dataDac, 10, 3, buf20);
-
-          char buffer[255] = " "; //Buffer de la cadena donde se devuelve todo, número formateado y cadena concatenada
-          char* formato = "status:%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s"; //Cadena con la mascara a convertir
-          sprintf(buffer, formato, buf0, buf1, buf2, buf3, buf4, buf5, buf6, buf7, buf8, buf9, buf10, buf11, buf12, buf13, buf14, buf15, buf16, buf17, buf18, buf19, buf20);
-          Serial.write(buffer);
-        } else if (e1 == "out") {
-          char* buf0 = "" ;
-          char* buf1 = "" ;
-          dtostrf(tempsPel[8], 10, 3, buf0); //Peltiers
-          dtostrf(tempsPel[9], 10, 3, buf1); //Peltiers
-          char buffer[50] = " "; //Buffer de la cadena donde se devuelve todo, número formateado y cadena concatenada
-          char* formato = "status:%s,%s"; //Cadena con la mascara a convertir
-          sprintf(buffer, formato, buf0, buf1);
-          Serial.write(buffer);
-
-        } else if (e1 == "pel") {
-          char* buf0 = "" ;
-          char* buf1 = "" ;
-          char* buf2 = "" ;
-          char* buf3 = "" ;
-          char* buf4 = "" ;
-          char* buf5 = "" ;
-          char* buf6 = "" ;
-          char* buf7 = "" ;
-          char* buf8 = "" ;
-          char* buf9 = "" ;
-          dtostrf(tempsPel[0], 10, 3, buf0); //Peltiers
-          dtostrf(tempsPel[1], 10, 3, buf1); //Peltiers
-          dtostrf(tempsPel[2], 10, 3, buf2); //Peltiers
-          dtostrf(tempsPel[3], 10, 3, buf3); //Peltiers
-          dtostrf(tempsPel[4], 10, 3, buf4); //Peltiers
-          dtostrf(tempsPel[5], 10, 3, buf5); //Peltiers
-          dtostrf(tempsPel[6], 10, 3, buf6); //Peltiers
-          dtostrf(tempsPel[7], 10, 3, buf7); //Peltiers
-          dtostrf(tempsPel[8], 10, 3, buf8); //Peltiers
-          dtostrf(tempsPel[9], 10, 3, buf9); //Peltiers
-          char buffer[100] = " "; //Buffer de la cadena donde se devuelve todo, número formateado y cadena concatenada
-          char* formato = "status:%s,%s,%s,%s,%s,%s,%s,%s,%s"; //Cadena con la mascara a convertir
-          sprintf(buffer, formato, buf0, buf1, buf2, buf3, buf4, buf5, buf6, buf7, buf8, buf9);
-          Serial.write(buffer);
-        } else if (e1 == "pump") {
-          char* buf0 = "" ;
-          char* buf1 = "" ;
-          dtostrf(pumpState, 10, 3, buf0); //Peltiers
-          dtostrf(pumpRpm, 10, 3, buf1); //Peltiers
-          char buffer[100] = " "; //Buffer de la cadena donde se devuelve todo, número formateado y cadena concatenada
-          char* formato = "status:%s,%s"; //Cadena con la mascara a convertir
-          sprintf(buffer, formato, buf0, buf1);
-          Serial.write(buffer);
-        } else if (e1 == "chiller") {
-          char* buf0 = "" ;
-          dtostrf((float)dataDac, 10, 3, buf0); //Peltiers
-          char buffer[100] = " "; //Buffer de la cadena donde se devuelve todo, número formateado y cadena concatenada
-          char* formato = "status:%s"; //Cadena con la mascara a convertir
-          sprintf(buffer, formato, buf0);
-          Serial.write(buffer);
-        } else if (e1 == "flowmeter") {
-          char* buf0 = "" ;
-          dtostrf(flowLPM, 10, 3, buf0); //Peltiers
-          char buffer[100] = " "; //Buffer de la cadena donde se devuelve todo, número formateado y cadena concatenada
-          char* formato = "status:%s"; //Cadena con la mascara a convertir
-          sprintf(buffer, formato, buf0);
-          Serial.write(buffer);
-        } else if (e1 == "coolantTemp") {
-          char* buf0 = "" ;
-          char* buf1 = "" ;
-          char* buf2 = "" ;
-          dtostrf(tempSenAp[0], 10, 3, buf0); //Peltiers
-          dtostrf(tempSenAp[1], 10, 3, buf1); //Peltiers
-          dtostrf(tempSenAp[2], 10, 3, buf2); //Peltiers
-          char buffer[100] = " "; //Buffer de la cadena donde se devuelve todo, número formateado y cadena concatenada
-          char* formato = "status:%s,%s,%s"; //Cadena con la mascara a convertir
-          sprintf(buffer, formato, buf0, buf1, buf2);
-          Serial.write(buffer);
-        } else if (e1 == "spareAIn") {
-          char* buf0 = "" ;
-          dtostrf(tempSenAp[3], 10, 3, buf0); //Peltiers
-          char buffer[100] = " "; //Buffer de la cadena donde se devuelve todo, número formateado y cadena concatenada
-          char* formato = "status:%s"; //Cadena con la mascara a convertir
-          sprintf(buffer, formato, buf0);
-          Serial.write(buffer);
-        }
-        else if (e1 == "spareDIn") {
-          char* buf0 = "" ;
-          char* buf1 = "" ;
-          char* buf2 = "" ;
-          dtostrf(spareDigitalInput[0], 10, 3, buf0);
-          dtostrf(spareDigitalInput[1], 10, 3, buf1);
-          dtostrf(spareDigitalInput[2], 10, 3, buf2);
-          char buffer[100] = " "; //Buffer de la cadena donde se devuelve todo, número formateado y cadena concatenada
-          char* formato = "status:%s,%s,%s"; //Cadena con la mascara a convertir
-          sprintf(buffer, formato, buf0);
-          Serial.write(buffer);
+          printAllSensor();
+        } else {
+          state = IDLEMODE; // State by default
+          Serial.print("Invalid command");
         }
       } else if (e0 == "it") {
         idleTemp = e1.toFloat();
         state = IDLEMODE;
       } else if (e0 == "wc") {
         wcTemp = e1.toFloat();
-        state = STARTMODE;
+        state = COOLINGMODE;
       } else if (e0 == "id") {
-        wcTemp = e1.toFloat();
-        state = STARTMODE;
+        state = IDLEMODE;
+      } else if (e0 == "cl") {
+        state = STOPALL;
       } else {
         state = IDLEMODE; // State by default
-        Serial.write("Invalid command");
+        Serial.print("Invalid command");
       }
     }
-
     // print every second
     static unsigned long previousMillis = 0;
     if ((millis() - previousMillis) >= 1000) { // Millise
       previousMillis += millis();
-      char* buf0 = "" ;
-      char* buf1 = "" ;
-      char* buf2 = "" ;
-      char* buf3 = "" ;
-      char* buf4 = "" ;
-      char* buf5 = "" ;
-      char* buf6 = "" ;
-      char* buf7 = "" ;
-      char* buf8 = "" ;
-      char* buf9 = "" ;
-      char* buf10 = "" ;
-      char* buf11 = "" ;
-      char* buf12 = "" ;
-      char* buf13 = "" ;
-      char* buf14 = "" ;
-      char* buf15 = "" ;
-      char* buf16 = "" ;
-      char* buf17 = "" ;
-      char* buf18 = "" ;
-      char* buf19 = "" ;
-      char* buf20 = "" ;
-      dtostrf(tempsPel[0], 10, 3, buf0); //Peltiers
-      dtostrf(tempsPel[1], 10, 3, buf1); //Peltiers
-      dtostrf(tempsPel[2], 10, 3, buf2); //Peltiers
-      dtostrf(tempsPel[3], 10, 3, buf3); //Peltiers
-      dtostrf(tempsPel[4], 10, 3, buf4); //Peltiers
-      dtostrf(tempsPel[5], 10, 3, buf5); //Peltiers
-      dtostrf(tempsPel[6], 10, 3, buf6); //Peltiers
-      dtostrf(tempsPel[7], 10, 3, buf7); //Peltiers
-      dtostrf(tempsPel[8], 10, 3, buf8); //Peltiers
-      dtostrf(tempsPel[9], 10, 3, buf9); //Peltiers
-      dtostrf(pumpState, 10, 3, buf10);
-      dtostrf(pumpRpm, 10, 3, buf11);
-      dtostrf(flowLPM, 10, 3, buf12);
-      dtostrf(spareDigitalInput[0], 10, 3, buf13);
-      dtostrf(spareDigitalInput[1], 10, 3, buf14);
-      dtostrf(spareDigitalInput[2], 10, 3, buf15);
-      dtostrf(tempSenAp[0], 10, 3, buf16);
-      dtostrf(tempSenAp[1], 10, 3, buf17);
-      dtostrf(tempSenAp[2], 10, 3, buf18);
-      dtostrf(tempSenAp[3], 10, 3, buf19);
-      dtostrf((float)dataDac, 10, 3, buf20);
-
-      char buffer[255] = " "; //Buffer de la cadena donde se devuelve todo, número formateado y cadena concatenada
-      char* formato = "status:%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s"; //Cadena con la mascara a convertir
-      sprintf(buffer, formato, buf0, buf1, buf2, buf3, buf4, buf5, buf6, buf7, buf8, buf9, buf10, buf11, buf12, buf13, buf14, buf15, buf16, buf17, buf18, buf19, buf20);
-      Serial.write(buffer);
+      printAllSensor();
     }
   }
   vTaskDelay(10);
@@ -386,33 +196,39 @@ void setup() {
     1,
     &Task1,
     1);
-
 }
 
 void loop() {
 
   switch (state) {
     case INITMODE:
+      writeOnPump(HIGH);
       softStartPeltier();
-      dataDac = 127;
+      dataDac = 127; //half gear
       dacSendByte(dataDac);
       state = IDLEMODE;
       break;
-    //    case STARTMODE:
-    //      // statements
-    //      break;
     case IDLEMODE:
-      // statements
+      dataDac = 255; //half gear
+      dacSendByte(dataDac);
+      controlTemp(idleTemp);
       break;
     case COOLINGMODE:
-      // statements
+      dataDac = 255; //half gear
+      dacSendByte(dataDac);
+      controlTemp(wcTemp);
+      break;
+    case STOPALL:
+      writeTempPel(0, 0, 0);
+      writeTempPel(1, 0, 0);
+      writeTempPel(2, 0, 0);
+      writeTempPel(3, 0, 0);
+      writeOnPump(LOW);
+      dataDac = 0;
+      dacSendByte(dataDac);
       break;
   }
-
-  //CONTROL TEMP
-
   readAllSensors();
-
 }
 
 void readAllSensors() {
@@ -571,7 +387,9 @@ void writeTempPel(uint_fast8_t number, uint_fast8_t cmode, uint_fast16_t power) 
       break;
   }
 }
+/*
 
+*/
 void softStartPeltier() {
   for (uint_fast16_t dutyCycle = 0; dutyCycle <= 255; dutyCycle++) {
     writeTempPel(0, 0, dutyCycle);
@@ -581,4 +399,51 @@ void softStartPeltier() {
     dacSendByte(dutyCycle);
     delay(7);
   }
+}
+/*
+
+*/
+void controlTemp(float _temp) {
+  if (tempsPel[8] < _temp - 1) { //OFF COOL
+    writeTempPel(0, 0, 0);
+    writeTempPel(1, 0, 0);
+  }
+  if (tempsPel[9] < _temp - 1) { //OFF COOL
+    writeTempPel(2, 0, 0);
+    writeTempPel(3, 0, 0);
+  }
+  if (tempsPel[8] > _temp + 1) { //ON COOL
+    writeTempPel(0, 0, 255);
+    writeTempPel(1, 0, 255);
+  }
+  if (tempsPel[9] > _temp + 1) { //ON COOL
+    writeTempPel(2, 0, 255);
+    writeTempPel(3, 0, 255);
+  }
+}
+
+/*
+
+*/
+void printAllSensor() {
+
+  for (uint_fast8_t i = 0; i < 10; i++) {
+    Serial.print(tempsPel[i]);
+    Serial.print(",");
+  }
+  Serial.print(pumpState);
+  Serial.print(",");
+  Serial.print(pumpRpm);
+  Serial.print(",");
+  Serial.print(flowLPM);
+  Serial.print(",");
+  for (uint_fast8_t i = 0; i < 3; i++) {
+    Serial.print(spareDigitalInput[i]);
+    Serial.print(",");
+  }
+  for (uint_fast8_t i = 0; i < 4; i++) {
+    Serial.print(tempSenAp[i]);
+    Serial.print(",");
+  }
+  Serial.print(dataDac);
 }
