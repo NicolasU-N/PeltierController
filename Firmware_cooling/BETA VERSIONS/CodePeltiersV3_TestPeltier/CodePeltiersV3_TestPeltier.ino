@@ -477,7 +477,7 @@ float readTempSenAp(uint8_t port, bool isNTC) {
 float readTempPel(uint8_t number) {
   float vout = 0;
   float R_NTC = 0;
-  float Temp_K  = 0;
+  float Temp_K  = 0;  
 
   if (number >= 0 and number <= 3) { //T1-T4
     vout = (float)ads0.readADC_SingleEnded(number ); // * (3.3 / 32767); //0...32767 resolutio
