@@ -5,13 +5,15 @@ ADS1115_lite ads1(ADS1115_ADDRESS_ADDR_VDD);  // 0x48 addr pin connected to GND
 ADS1115_lite ads2(ADS1115_ADDRESS_ADDR_SDA);  // 0x48 addr pin connected to GND
 ADS1115_lite ads3(ADS1115_ADDRESS_ADDR_SCL);  // 0x48 addr pin connected to GND
 
-int16_t tempsPel[10];
+float tempsPel[10];
 
 float vin = 3260;
 float volt = 0;
-float R1 = 325;
+float R1 = 10500; //10 RES
 float R2 = 0;
 float buffercon = 0;
+
+
 
 void setup() {
   Serial.begin(115200);
@@ -21,14 +23,16 @@ void setup() {
 
 void loop() {
 
-  //for (uint8_t i = 0; i < 10; i++) {
-  //  tempsPel[i] = readTempPel(i);
-  //}
+  for (uint8_t i = 0; i < 10; i++) {
+    tempsPel[i] = readTempPel(i);
+  }
 
-  volt = (float)ads2_read() * 0.125; //voltaje 0.125 -> 1 gain // 0.1875 -> 2/3 gain
-  buffercon = (vin / volt) - 1;
-  R2 = R1 * buffercon;
-  Serial.println(R2);
+  /*
+    volt = (float)ads2_read() * 0.125; //voltaje 0.125 -> 1 gain // 0.1875 -> 2/3 gain
+    buffercon = (vin / volt) - 1;
+    R2 = R1 * buffercon;
+    Serial.println(R2);
+  */
 
   delay(500);
 }
@@ -158,81 +162,100 @@ int16_t ads3_read3() {
 /*
   0...9
 */
-int16_t readTempPel(uint8_t number) {
-  int16_t vout = 0;
+float readTempPel(uint8_t number) {
+  float vout = 0;
 
-  if (number >= 0 and number <= 3) { //T1-T4
+  //T1-T4
 
-    if (number == 0) {
-      vout = ads_read();
-    }
-
-    if (number == 1) {
-      vout = ads_read1();
-    }
-
-    if (number == 2) {
-      vout = ads_read2();
-    }
-
-    if (number == 3) {
-      vout = ads_read3();
-    }
-
+  if (number == 0) {
+    vout = getRes5kTemperature(getOhms(ads_read()));
     Serial.print("ADS1__");
     Serial.print(number);
     Serial.print("__");
     Serial.print((int)vout);
     Serial.print("__");
     Serial.println("");
-
   }
 
-  else if (number > 3  and number <= 7) { //T5-T8
+  if (number == 1) {
+    vout = getRes5kTemperature(getOhms(ads_read1()));
+    Serial.print("ADS1__");
+    Serial.print(number);
+    Serial.print("__");
+    Serial.print((int)vout);
+    Serial.print("__");
+    Serial.println("");
+  }
 
-    if (number == 3) {
-      vout = ads1_read();
-    }
+  if (number == 2) {
+    vout = getRes5kTemperature(getOhms(ads_read2()));
+    Serial.print("ADS1__");
+    Serial.print(number);
+    Serial.print("__");
+    Serial.print((int)vout);
+    Serial.print("__");
+    Serial.println("");
+  }
 
-    if (number == 4) {
-      vout = ads1_read1();
-    }
+  if (number == 3) {
+    vout = getRes5kTemperature(getOhms(ads_read3()));
+    Serial.print("ADS1__");
+    Serial.print(number);
+    Serial.print("__");
+    Serial.print((int)vout);
+    Serial.print("__");
+    Serial.println("");
+  }
 
-    if (number == 5) {
-      vout = ads1_read2();
-    }
+  //T5-T8
 
-    if (number == 6) {
-      vout = ads1_read3();
-    }
-
-    //vout = ads1.readADC_SingleEnded(number - 4);// * (3.3 / 32767); //0...32767 resolution
-
+  if (number == 4) {
+    vout = getRes5kTemperature(getOhms(ads1_read()));
     Serial.print("ADS2__");
     Serial.print(number);
     Serial.print("__");
     Serial.print((int)vout);
     Serial.print("__");
     Serial.println("");
-  } else if (number > 7) { //T9-T10
+  }
 
-    if (number == 7) {
-      vout = ads2_read();
-    }
+  if (number == 5) {
+    vout = getRes5kTemperature(getOhms(ads1_read1()));
+    Serial.print("ADS2__");
+    Serial.print(number);
+    Serial.print("__");
+    Serial.print((int)vout);
+    Serial.print("__");
+    Serial.println("");
+  }
 
-    if (number == 8) {
-      vout = ads2_read1();
-    }
+  if (number == 6) {
+    vout = getRes5kTemperature(getOhms(ads1_read2()));
+    Serial.print("ADS2__");
+    Serial.print(number);
+    Serial.print("__");
+    Serial.print((int)vout);
+    Serial.print("__");
+    Serial.println("");
+  }
 
-    if (number == 9) {
-      vout = ads2_read2();
-    }
+  if (number == 7) {
+    vout = getRes5kTemperature(getOhms(ads1_read3()));
+    Serial.print("ADS2__");
+    Serial.print(number);
+    Serial.print("__");
+    Serial.print((int)vout);
+    Serial.print("__");
+    Serial.println("");
+  }
 
-    if (number == 10) {
-      vout = ads2_read3();
-    }
+  //vout = ads1.readADC_SingleEnded(number - 4);// * (3.3 / 32767); //0...32767 resolution
 
-    //vout = ads2.readADC_SingleEnded(number - 8);// * (3.3 / 32767); //0...32767 resolution
+
+  //T9-T10
+
+  if (number == 8) {
+    vout = getRes10kTemperature(getOhms(ads2_read()));
     Serial.print("ADS3__");
     Serial.print(number);
     Serial.print("__");
@@ -241,8 +264,52 @@ int16_t readTempPel(uint8_t number) {
     Serial.println("");
   }
 
+  if (number == 9) {
+    vout = getRes10kTemperature(getOhms(ads2_read1()));
+    Serial.print("ADS3__");
+    Serial.print(number);
+    Serial.print("__");
+    Serial.print((int)vout);
+    Serial.print("__");
+    Serial.println("");
+  }
+
+  /*
+    if (number == 10) {
+    vout = ads2_read2();
+    }
+    if (number == 11) {
+    vout = ads2_read3();
+    }
+  */
+
+  //vout = ads2.readADC_SingleEnded(number - 8);// * (3.3 / 32767); //0...32767 resolution
+
+
+
   //float Temp_C = Temp_K - 273.15; //converting into Celsius
   return vout;//Temp_C;
 
-  Serial.println("");
+  //Serial.println("");
+}
+
+
+float getOhms(int16_t lecture) {
+  volt = abs(lecture) * 0.125; //0.125->1 gain
+  buffercon = (vin / volt) - 1;
+  return R1 * buffercon;
+
+}
+
+
+float getRes5kTemperature(int16_t res)
+{
+  float tx = 530.1959 * pow((float)res, -0.1231) - 160.7144;
+  return tx;
+}
+
+float getRes10kTemperature(int16_t res)
+{
+  float tx = 708.9896 * pow((float)res, -0.1471) - 157.9437;
+  return tx;
 }

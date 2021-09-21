@@ -15,16 +15,16 @@ ADS1115_lite ads3(ADS1115_ADDRESS_ADDR_SCL); // 0x48 addr pin connected to GND
 MYADS::MYADS()
 {
   ads.setGain(ADS1115_REG_CONFIG_PGA_4_096V);     // GAIN_ONE and resolution to ± 4.096V
-  ads.setSampleRate(ADS1115_REG_CONFIG_DR_64SPS); // Set to the fastest MODE 860Samples per sec
+  ads.setSampleRate(ADS1115_REG_CONFIG_DR_8SPS); // Set to the fastest MODE 860Samples per sec
 
   ads1.setGain(ADS1115_REG_CONFIG_PGA_4_096V);     // GAIN_ONE and resolution to ± 4.096V
-  ads1.setSampleRate(ADS1115_REG_CONFIG_DR_64SPS); // Set to the fastest MODE 860Samples per sec
+  ads1.setSampleRate(ADS1115_REG_CONFIG_DR_8SPS); // Set to the fastest MODE 860Samples per sec
 
   ads2.setGain(ADS1115_REG_CONFIG_PGA_4_096V);     // GAIN_ONE and resolution to ± 4.096V
-  ads2.setSampleRate(ADS1115_REG_CONFIG_DR_64SPS); // Set to the fastest MODE 860Samples per sec
+  ads2.setSampleRate(ADS1115_REG_CONFIG_DR_8SPS); // Set to the fastest MODE 860Samples per sec
 
   ads3.setGain(ADS1115_REG_CONFIG_PGA_4_096V);     // GAIN_ONE and resolution to ± 4.096V
-  ads3.setSampleRate(ADS1115_REG_CONFIG_DR_64SPS); // Set to the fastest MODE 860Samples per sec
+  ads3.setSampleRate(ADS1115_REG_CONFIG_DR_8SPS); // Set to the fastest MODE 860Samples per sec
 }
 
 /*

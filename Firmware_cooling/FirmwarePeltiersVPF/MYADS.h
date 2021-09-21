@@ -1,9 +1,9 @@
 /*
-    @file MyAds.h
+  @file MyAds.h
 
-    @Author
-    Nicolas Useche
-    V 1.0.0
+  @Author
+  Nicolas Useche
+  V 1.0.0
 */
 
 #ifndef MYADS_h

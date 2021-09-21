@@ -88,9 +88,9 @@ float flowLPM = 0;
 float vin = 3260.0;
 float tempsPel[6];
 
-float R1 = 5000;  //5K sensor resistor
-float R3 = 15000; //15K sensor resistor
-float R4 = 10000; //10K sensor resistor
+float R1 = 10000;  //5K sensor resistor    5000
+float R3 = 10000; //15K sensor resistor   15000
+float R4 = 10000; //10K sensor resistor   10000
 //-----------------------------------------------------------
 
 //----------------------------------------------------------- COOLANT SENSORS
@@ -139,15 +139,15 @@ void codeForTask1(void *parameter)
 {
   for (;;)
   { // loop
-    if (state != STOPALL)
-    {
-      dacSendByte(dataDac);
-    }
-    else
-    {
-      dacSendByte(0);
-    }
-    delay(10);
+    //if (state != STOPALL)
+    //{
+    //  dacSendByte(dataDac);
+    //}
+    //else
+    //{
+    //  dacSendByte(0);
+    //}
+    delay(15);
   }
   vTaskDelay(100 / portTICK_PERIOD_MS);
 }
