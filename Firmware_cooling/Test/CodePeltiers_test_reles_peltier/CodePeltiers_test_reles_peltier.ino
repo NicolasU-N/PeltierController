@@ -74,6 +74,14 @@ void setup() {
   pinMode(S4_C1, OUTPUT);
   pinMode(S4_C2, OUTPUT);
 
+  for (uint8_t i = 0; i < 4; i++)
+  {
+    // configure LED PWM functionalitites
+    ledcSetup(PWM_CHANNEL[i], PWM_FREQUENCY, PWM_RESOUTION);
+    // attach the channel to the GPIO to be controlled
+    ledcAttachPin(GPIOPIN[i], PWM_CHANNEL[i]);
+  }
+
   writeTempPel(0, 2, 0); // OFF
   writeTempPel(1, 2, 0);
   writeTempPel(2, 2, 0);
@@ -83,21 +91,25 @@ void setup() {
 }
 
 void loop() {
+
+
   writeTempPel(0, 0, 127);
   delay(1000);
-  writeTempPel(1, 0, 127);
-  delay(1000);
-  writeTempPel(2, 0, 127);
-  delay(1000);
-  writeTempPel(3, 0, 127);
-  delay(2000);
-  writeTempPel(0, 2, 0); // OFF
-  delay(1000);
-  writeTempPel(1, 2, 0);
-  delay(1000);
-  writeTempPel(2, 2, 0);
-  delay(1000);
-  writeTempPel(3, 2, 0);
+  
+    writeTempPel(1, 0, 127);
+    delay(1000);
+    writeTempPel(2, 0, 127);
+    delay(1000);
+    writeTempPel(3, 0, 127);
+    delay(2000);
+    writeTempPel(0, 2, 0); // OFF
+    delay(1000);
+    writeTempPel(1, 2, 0);
+    delay(1000);
+    writeTempPel(2, 2, 0);
+    delay(1000);
+    writeTempPel(3, 2, 0);
+  
 }
 
 /*
