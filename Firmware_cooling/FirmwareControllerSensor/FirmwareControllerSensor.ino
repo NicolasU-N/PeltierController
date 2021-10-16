@@ -643,76 +643,80 @@ void writeTempPel(uint8_t number, uint8_t cmode, uint8_t power)
   {
     case 0:
       ledcWrite(PWM_CHANNEL[number], power); //ledChannel, dutyCycle
-      if (cmode == 0)
-      {
-        digitalWrite(S1_C1, HIGH);
-        digitalWrite(S1_C2, LOW);
-      }
-      else if (cmode == 1)
-      {
-        digitalWrite(S1_C1, LOW);
-        digitalWrite(S1_C2, HIGH);
-      }
-      else if (cmode == 2)
-      {
-        digitalWrite(S1_C1, LOW);
-        digitalWrite(S1_C2, LOW);
+      switch (cmode) {
+        case 0:
+          digitalWrite(S1_C1, HIGH);
+          digitalWrite(S1_C2, LOW);
+          break;
+
+        case 1:
+          digitalWrite(S1_C1, LOW);
+          digitalWrite(S1_C2, HIGH);
+          break;
+
+        case 2:
+          digitalWrite(S1_C1, LOW);
+          digitalWrite(S1_C2, LOW);
+          break;
       }
       break;
     case 1:
       ledcWrite(PWM_CHANNEL[number], power); //ledChannel, dutyCycle
-      if (cmode == 0)
-      {
-        digitalWrite(S2_C1, HIGH);
-        digitalWrite(S2_C2, LOW);
-      }
-      else if (cmode == 1)
-      {
-        digitalWrite(S2_C1, LOW);
-        digitalWrite(S2_C2, HIGH);
-      }
-      else if (cmode == 2)
-      {
-        digitalWrite(S2_C1, LOW);
-        digitalWrite(S2_C2, LOW);
-      }
+      switch (cmode) {
+        case 0:
+          digitalWrite(S2_C1, HIGH);
+          digitalWrite(S2_C2, LOW);
+          break;
 
+        case 1:
+          digitalWrite(S2_C1, LOW);
+          digitalWrite(S2_C2, HIGH);
+          break;
+
+        case 2:
+          digitalWrite(S2_C1, LOW);
+          digitalWrite(S2_C2, LOW);
+          break;
+      }
       break;
     case 2:
       ledcWrite(PWM_CHANNEL[number], power); //ledChannel, dutyCycle
-      if (cmode == 0)
-      {
-        digitalWrite(S3_C1, HIGH);
-        digitalWrite(S3_C2, LOW);
-      }
-      else if (cmode == 1)
-      {
-        digitalWrite(S3_C1, LOW);
-        digitalWrite(S3_C2, HIGH);
-      }
-      else if (cmode == 2)
-      {
-        digitalWrite(S3_C1, LOW);
-        digitalWrite(S3_C2, LOW);
+      switch (cmode) {
+        case 0:
+          digitalWrite(S3_C1, HIGH);
+          digitalWrite(S3_C2, LOW);
+          break;
+
+        case 1:
+          digitalWrite(S3_C1, LOW);
+          digitalWrite(S3_C2, HIGH);
+          break;
+
+        case 2:
+          digitalWrite(S3_C1, LOW);
+          digitalWrite(S3_C2, LOW);
+          break;
       }
       break;
     case 3:
       ledcWrite(PWM_CHANNEL[number], power); //ledChannel, dutyCycle
-      if (cmode == 0)
-      {
-        digitalWrite(S4_C1, HIGH);
-        digitalWrite(S4_C2, LOW);
+      switch (cmode) {
+        case 0:
+          digitalWrite(S4_C1, HIGH);
+          digitalWrite(S4_C2, LOW);
+          break;
+
+        case 1:
+          digitalWrite(S4_C1, LOW);
+          digitalWrite(S4_C2, HIGH);
+          break;
+
+        case 2:
+          digitalWrite(S4_C1, LOW);
+          digitalWrite(S4_C2, LOW);
+          break;
       }
-      else if (cmode == 1)
-      {
-        digitalWrite(S4_C1, LOW);
-        digitalWrite(S4_C2, HIGH);
-      }
-      else if (cmode == 2)
-      {
-        digitalWrite(S4_C1, LOW);
-        digitalWrite(S4_C2, LOW);
-      }
+
       break;
   }
 }
