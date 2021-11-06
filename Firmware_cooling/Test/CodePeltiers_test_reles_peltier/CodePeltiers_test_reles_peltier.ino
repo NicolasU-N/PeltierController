@@ -46,8 +46,8 @@
 #define S1_C1 23
 #define S1_C2 25
 #define SRC2  17
-#define S2_C1 11
-#define S2_C2 12
+#define S2_C1 26
+#define S2_C2 27
 #define SRC3  18
 #define S3_C1 32
 #define S3_C2 33
@@ -55,7 +55,7 @@
 #define S4_C1 13
 #define S4_C2 4
 
-uint16_t PWM_FREQUENCY = 1000; // this variable is used to define the time period
+uint16_t PWM_FREQUENCY = 2000; // this variable is used to define the time period
 uint8_t PWM_RESOUTION = 8; // this will define the resolution of the signal which is 8 in this case
 uint8_t PWM_CHANNEL[] = {0, 1, 2, 3}; // this variable is used to select the channel number
 uint8_t GPIOPIN[] = {SRC1, SRC2, SRC3, SRC4}; // GPIO to which we want to attach this channel signal
@@ -64,6 +64,15 @@ uint8_t GPIOPIN[] = {SRC1, SRC2, SRC3, SRC4}; // GPIO to which we want to attach
 
 void setup() {
   Serial.begin(115200);
+
+  for (uint8_t i = 0; i < 4; i++)
+  {
+    // configure LED PWM functionalitites
+    ledcSetup(PWM_CHANNEL[i], PWM_FREQUENCY, PWM_RESOUTION);
+    // attach the channel to the GPIO to be controlled
+    ledcAttachPin(GPIOPIN[i], PWM_CHANNEL[i]);
+  }
+
 
   pinMode(S1_C1, OUTPUT);
   pinMode(S1_C2, OUTPUT);
@@ -74,33 +83,41 @@ void setup() {
   pinMode(S4_C1, OUTPUT);
   pinMode(S4_C2, OUTPUT);
 
-  for (uint8_t i = 0; i < 4; i++)
-  {
-    // configure LED PWM functionalitites
-    ledcSetup(PWM_CHANNEL[i], PWM_FREQUENCY, PWM_RESOUTION);
-    // attach the channel to the GPIO to be controlled
-    ledcAttachPin(GPIOPIN[i], PWM_CHANNEL[i]);
-  }
-
-  writeTempPel(0, 2, 0); // OFF
-  writeTempPel(1, 2, 0);
-  writeTempPel(2, 2, 0);
-  writeTempPel(3, 2, 0);
-
+  /*
+    writeTempPel(0, 2, 0); // OFF
+    writeTempPel(1, 2, 0);
+    writeTempPel(2, 2, 0);
+    writeTempPel(3, 2, 0);
+  */
   Serial.print("->WELCOME");
 }
 
 void loop() {
 
-
-  writeTempPel(0, 0, 127);
-  delay(1000);
+  /*writeTempPel(0, 0, 255);
+    writeTempPel(1, 0, 255);
+    writeTempPel(2, 0, 255);
+    writeTempPel(3, 0, 255);
+  */
+  ledcWrite(PWM_CHANNEL[2], 255);
+  //digitalWrite(S3_C1, LOW);
+  //digitalWrite(S3_C2, HIGH);
+  //digitalWrite(S3_C1, HIGH);
+  //digitalWrite(S3_C2, LOW);
+  delay(500);
+  digitalWrite(S2_C1, LOW);
+  digitalWrite(S2_C2, LOW); 
+  delay(500);
   
-    writeTempPel(1, 0, 127);
-    delay(1000);
-    writeTempPel(2, 0, 127);
-    delay(1000);
-    writeTempPel(3, 0, 127);
+  //delay(2000);
+  
+  /*writeTempPel(0, 2, 0);
+    writeTempPel(1, 2, 0);
+    writeTempPel(2, 2, 0);
+    writeTempPel(3, 2, 0);
+  */
+
+  /*
     delay(2000);
     writeTempPel(0, 2, 0); // OFF
     delay(1000);
@@ -109,7 +126,7 @@ void loop() {
     writeTempPel(2, 2, 0);
     delay(1000);
     writeTempPel(3, 2, 0);
-  
+  */
 }
 
 /*
@@ -119,6 +136,9 @@ void loop() {
    cmode  2 - > STOP
 */
 void writeTempPel(uint8_t number, uint8_t cmode, uint16_t power) {
+  Serial.print("RELE ");
+  Serial.print(number);
+  Serial.println(" ON");
   switch (number) {
     case 0:
       ledcWrite(PWM_CHANNEL[number], power); //ledChannel, dutyCycle

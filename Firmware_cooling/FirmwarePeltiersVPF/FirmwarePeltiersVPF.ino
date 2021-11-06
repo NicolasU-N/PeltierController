@@ -38,16 +38,16 @@
 #include "SingleEMAFilterLib.h"
 
 
-#define SRC1 16
+#define SRC1  16
 #define S1_C1 23
 #define S1_C2 25
-#define SRC2 17
-#define S2_C1 11
-#define S2_C2 12
-#define SRC3 18
+#define SRC2  17
+#define S2_C1 26
+#define S2_C2 27
+#define SRC3  18
 #define S3_C1 32
 #define S3_C2 33
-#define SRC4 19
+#define SRC4  19
 #define S4_C1 13
 #define S4_C2 4
 
@@ -55,7 +55,7 @@
 #define ADDR_PCF 0x38
 
 // Set i2c HEX address
-PCF8574 pcf8574(&Wire, 0x38);
+PCF8574 pcf8574(&Wire, ADDR_PCF);
 
 SingleEMAFilter<float> filter1(0.4); // 0.2
 SingleEMAFilter<float> filter2(0.4); // 0.2
@@ -85,7 +85,7 @@ float flowLPM = 0;
 
 //----------------------------------------------------------- PELTIERS
 // Temps peltiers 0...7 Heat 8..9 Cool
-float vin = 3260.0;
+float vin = 3299.0;
 float tempsPel[6];
 
 float R1 = 10000;  //5K sensor resistor    5000
@@ -114,13 +114,13 @@ uint8_t button_state[2]; // 0 -> RMP 1 -> FLOW METER
 
 uint8_t dataDac = 127;
 
-uint16_t PWM_FREQUENCY = 1000;                // this variable is used to define the time period
+uint16_t PWM_FREQUENCY = 2000;                // this variable is used to define the time period
 uint8_t PWM_RESOUTION = 8;                    // this will define the resolution of the signal which is 8 in this case
 uint8_t PWM_CHANNEL[] = {0, 1, 2, 3};         // this variable is used to select the channel number
 uint8_t GPIOPIN[] = {SRC1, SRC2, SRC3, SRC4}; // GPIO to which we want to attach this channel signal
 //uint_fast16_t dutyCycle = 0; // it will define the width of signal or also the one time
 
-float idleTemp = 10; //default
+float idleTemp = 20; //default
 float wcTemp = 6;    //default
 
 ////////////////////////
@@ -132,25 +132,6 @@ float wcTemp = 6;    //default
 #define STOPALL 3
 
 uint8_t state = INITMODE;
-
-TaskHandle_t task1_handle;
-
-void codeForTask1(void *parameter)
-{
-  for (;;)
-  { // loop
-    //if (state != STOPALL)
-    //{
-    //  dacSendByte(dataDac);
-    //}
-    //else
-    //{
-    //  dacSendByte(0);
-    //}
-    delay(15);
-  }
-  vTaskDelay(100 / portTICK_PERIOD_MS);
-}
 
 void setup()
 {
@@ -183,14 +164,6 @@ void setup()
     ledcAttachPin(GPIOPIN[i], PWM_CHANNEL[i]);
   }
 
-  xTaskCreatePinnedToCore(
-    codeForTask1,
-    "Send data to dac",
-    4096,
-    NULL,
-    0,
-    NULL, //&task1_handle
-    0);
 
   Serial.println("--> WELCOME!");
   Serial.println("--> Please enter idle temperature: ");
@@ -212,34 +185,21 @@ void loop()
   if ((millis() - previousMillis2) >= 200)
   { // Millise
     readAllSensors();
+    dacSendByte(dataDac);
     previousMillis2 += 200;
   }
-
-  /*
-    static unsigned long previousMillis3 = 0;
-    if ((millis() - previousMillis3) >= 500)
-    { // Millise
-      printAllSensor();
-      previousMillis3 += 500;
-    }
-  */
 
   switch (state)
   {
     case INITMODE:
       writeOnPump(0); // On pump
-      softStartPeltier();
       state = IDLEMODE;
       break;
     case IDLEMODE:
       controlTemp(idleTemp);
       break;
     case COOLINGMODE:
-      //if ((tempsPel[6] <= wcTemp - 2) and (tempsPel[6] >= wcTemp + 2)) {
-      //  state = IDLEMODE;
-      //} else {
       controlTemp(wcTemp);
-      //}
       break;
 
     // -------------------------------------------------- MAY BE OPTIONAL
@@ -379,42 +339,42 @@ void readAllSensors()
 void controlTemp(float _temp)
 {
   // ON/OFF 1
-  if (tempsPel[4] > _temp + 1)
-  { //OFF COOL
-    writeTempPel(0, 0, 127);
-    writeTempPel(1, 0, 127);
+  if (tempsPel[4] > _temp )
+  { //ON COOL
+    writeTempPel(0, 0, 255);
+    writeTempPel(1, 0, 255);
   }
 
-  if (tempsPel[4] < _temp - 1)
+  if (tempsPel[4] < _temp )
   { //OFF COOL
-    writeTempPel(0, 0, 0);
-    writeTempPel(1, 0, 0);
+    writeTempPel(0, 1, 255);
+    writeTempPel(1, 1, 255);
   }
 
   // ON/OFF 2
-  if (tempsPel[5] > _temp + 1)
+  if (tempsPel[5] > _temp )
   { //OFF COOL
-    writeTempPel(2, 0, 127);
-    writeTempPel(3, 0, 127);
+    writeTempPel(2, 0, 255);
+    writeTempPel(3, 0, 255);
   }
 
-  if (tempsPel[5] < _temp - 1)
+  if (tempsPel[5] < _temp)
   { //OFF COOL
-    writeTempPel(2, 0, 0);
-    writeTempPel(3, 0, 0);
+    writeTempPel(2, 1, 255);
+    writeTempPel(3, 1, 255);
   }
 
   //standby
-  if ((tempsPel[4] >= _temp - 2) and (tempsPel[4] <= _temp + 2))
+  if ((tempsPel[4] == _temp - 2) and (tempsPel[4] <= _temp + 2))
   { // Está en el rango
-    writeTempPel(0, 0, 0);
-    writeTempPel(1, 0, 0);
+    writeTempPel(0, 2, 0);
+    writeTempPel(1, 2, 0);
   }
 
   if ((tempsPel[5] >= _temp - 2) and (tempsPel[5] <= _temp + 2))
   { // Está en el rango
-    writeTempPel(2, 0, 0);
-    writeTempPel(3, 0, 0);
+    writeTempPel(2, 2, 0);
+    writeTempPel(3, 2, 0);
   }
 
   // HOT TEMPERATURE CONTROL
@@ -433,16 +393,8 @@ void controlTemp(float _temp)
 
   if (tempsPel[3] >= 80) {
     //OFF COOL
-    writeTempPel(3, 2, 0); // ------------------------------------------------------------------------------ Check thermistor connection
+    writeTempPel(3, 2, 0);
   }
-
-
-  /*
-    if (tempsPel[4] >= 80 or tempsPel[5] >= 80)
-    { //OFF COOL
-
-    }
-  */
 }
 
 /*
@@ -564,7 +516,7 @@ void readTempPel()
           break;
         case 5:
           filter6.AddValue(getRes15kTemperature(R2));
-          tempsPel[i] = filter5.GetLowPass();
+          tempsPel[i] = filter6.GetLowPass();
           break;
       }
     }
@@ -614,7 +566,7 @@ void writeOnPump(uint8_t state)
 /*
    @brief Write pwm to peltier cells
    @param uint8_t number peltier group number (0...3)
-   @param uint8_t cmode cooling or heating mode |(0 -> cooling)|(1 -> heating)|(0 -> stop)
+   @param uint8_t cmode cooling or heating mode |(0 -> cooling)|(1 -> heating)|(2 -> stop)
    @param uint8_t power dutyCycle
 */
 void writeTempPel(uint8_t number, uint8_t cmode, uint8_t power)
@@ -623,92 +575,74 @@ void writeTempPel(uint8_t number, uint8_t cmode, uint8_t power)
   {
     case 0:
       ledcWrite(PWM_CHANNEL[number], power); //ledChannel, dutyCycle
-      if (cmode == 0)
-      {
-        digitalWrite(S1_C1, HIGH);
-        digitalWrite(S1_C2, LOW);
-      }
-      else if (cmode == 1)
-      {
-        digitalWrite(S1_C1, LOW);
-        digitalWrite(S1_C2, HIGH);
-      }
-      else if (cmode == 2)
-      {
-        digitalWrite(S1_C1, LOW);
-        digitalWrite(S1_C2, LOW);
+      switch (cmode) {
+        case 0:
+          digitalWrite(S1_C1, LOW);
+          digitalWrite(S1_C2, HIGH);
+          break;
+        case 1:
+          digitalWrite(S1_C1, HIGH);
+          digitalWrite(S1_C2, LOW);
+          break;
+        case 2:
+          digitalWrite(S1_C1, LOW);
+          digitalWrite(S1_C2, LOW);
+          break;
       }
       break;
     case 1:
       ledcWrite(PWM_CHANNEL[number], power); //ledChannel, dutyCycle
-      if (cmode == 0)
-      {
-        digitalWrite(S2_C1, HIGH);
-        digitalWrite(S2_C2, LOW);
-      }
-      else if (cmode == 1)
-      {
-        digitalWrite(S2_C1, LOW);
-        digitalWrite(S2_C2, HIGH);
-      }
-      else if (cmode == 2)
-      {
-        digitalWrite(S2_C1, LOW);
-        digitalWrite(S2_C2, LOW);
+      switch (cmode) {
+        case 0:
+          digitalWrite(S2_C1, LOW);
+          digitalWrite(S2_C2, HIGH);
+          break;
+        case 1:
+          digitalWrite(S2_C1, HIGH);
+          digitalWrite(S2_C2, LOW);
+          break;
+        case 2:
+          digitalWrite(S2_C1, LOW);
+          digitalWrite(S2_C2, LOW);
+          break;
       }
 
       break;
     case 2:
       ledcWrite(PWM_CHANNEL[number], power); //ledChannel, dutyCycle
-      if (cmode == 0)
-      {
-        digitalWrite(S3_C1, HIGH);
-        digitalWrite(S3_C2, LOW);
+      switch (cmode) {
+        case 0:
+          digitalWrite(S3_C1, LOW);
+          digitalWrite(S3_C2, HIGH);
+          break;
+        case 1:
+          digitalWrite(S3_C1, HIGH);
+          digitalWrite(S3_C2, LOW);
+          break;
+        case 2:
+          digitalWrite(S3_C1, LOW);
+          digitalWrite(S3_C2, LOW);
+          break;
       }
-      else if (cmode == 1)
-      {
-        digitalWrite(S3_C1, LOW);
-        digitalWrite(S3_C2, HIGH);
-      }
-      else if (cmode == 2)
-      {
-        digitalWrite(S3_C1, LOW);
-        digitalWrite(S3_C2, LOW);
-      }
+
       break;
     case 3:
       ledcWrite(PWM_CHANNEL[number], power); //ledChannel, dutyCycle
-      if (cmode == 0)
-      {
-        digitalWrite(S4_C1, HIGH);
-        digitalWrite(S4_C2, LOW);
-      }
-      else if (cmode == 1)
-      {
-        digitalWrite(S4_C1, LOW);
-        digitalWrite(S4_C2, HIGH);
-      }
-      else if (cmode == 2)
-      {
-        digitalWrite(S4_C1, LOW);
-        digitalWrite(S4_C2, LOW);
+      switch (cmode) {
+        case 0:
+          digitalWrite(S4_C1, LOW);
+          digitalWrite(S4_C2, HIGH);
+          break;
+        case 1:
+          digitalWrite(S4_C1, HIGH);
+          digitalWrite(S4_C2, LOW);
+          break;
+        case 2:
+          digitalWrite(S4_C1, LOW);
+          digitalWrite(S4_C2, LOW);
+          break;
       }
       break;
-  }
-}
-
-/*
-
-*/
-void softStartPeltier()
-{
-  for (uint8_t dutyCycle = 0; dutyCycle <= 127; dutyCycle++)
-  {
-    writeTempPel(0, 0, dutyCycle);
-    writeTempPel(1, 0, dutyCycle);
-    writeTempPel(2, 0, dutyCycle);
-    writeTempPel(3, 0, dutyCycle);
-    delay(10);
   }
 }
 

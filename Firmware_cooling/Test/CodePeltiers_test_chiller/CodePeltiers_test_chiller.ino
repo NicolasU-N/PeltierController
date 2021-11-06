@@ -49,10 +49,16 @@ void setup() {
   Serial.begin(115200);
 
   Wire.begin();
+  
+  dacSendByte(127);
+  delay(2000);
+  dacSendByte(255);
+  delay(3000);
+  dacSendByte(127);
 }
 
 void loop() {
-  dacSendByte(127);
+
 }
 
 

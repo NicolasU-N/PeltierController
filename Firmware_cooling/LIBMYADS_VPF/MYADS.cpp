@@ -10,7 +10,7 @@
 ADS1115_lite ads(ADS1115_ADDRESS_ADDR_GND);
 ADS1115_lite ads1(ADS1115_ADDRESS_ADDR_VDD);
 ADS1115_lite ads2(ADS1115_ADDRESS_ADDR_SDA);
-ADS1115_lite ads3(ADS1115_ADDRESS_ADDR_SCL);
+//ADS1115_lite ads3(ADS1115_ADDRESS_ADDR_SCL);
 
 MYADS::MYADS()
 {
@@ -24,10 +24,15 @@ MYADS::MYADS()
   ads2.setGain(ADS1115_REG_CONFIG_PGA_4_096V);     // GAIN_ONE and resolution to ± 4.096V
   ads2.setSampleRate(ADS1115_REG_CONFIG_DR_8SPS); // Set to the fastest MODE 860Samples per sec
 
-  ads3.setGain(ADS1115_REG_CONFIG_PGA_4_096V);     // GAIN_ONE and resolution to ± 4.096V
-  ads3.setSampleRate(ADS1115_REG_CONFIG_DR_8SPS); // Set to the fastest MODE 860Samples per sec
+  //ads3.setGain(ADS1115_REG_CONFIG_PGA_4_096V);     // GAIN_ONE and resolution to ± 4.096V
+  //ads3.setSampleRate(ADS1115_REG_CONFIG_DR_8SPS); // Set to the fastest MODE 860Samples per sec
 }
 
+/*
+  void MYADS::setAdsConfigAll(void)
+  {
+  }
+*/
 
 int16_t MYADS::getAds0(uint8_t port)
 {
@@ -92,7 +97,7 @@ int16_t MYADS::getAds2(uint8_t port)
   return ads2.getConversion();
 }
 
-
+/*
 int16_t MYADS::getAds3(uint8_t port)
 {
   switch (port)
@@ -113,3 +118,4 @@ int16_t MYADS::getAds3(uint8_t port)
   ads3.triggerConversion();    // Triggered mannually
   return ads3.getConversion(); // returns int16_t value
 }
+*/

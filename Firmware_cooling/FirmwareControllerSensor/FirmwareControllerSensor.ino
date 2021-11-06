@@ -87,14 +87,15 @@ float flowLPM = 0;
 // Temps peltiers 0...7 Heat 8..9 Cool
 float vin = 3290;
 float volt = 0;
-
+float R1 = 10500; //10 RES
 float R2 = 0;
 float buffercon = 0;
 
 float tempsPel[10];
 
-float R1 = 5000;  //5K sensor resistor    5000
-
+//float R1 = 10000;  //5K sensor resistor    5000
+//float R3 = 10000; //15K sensor resistor   15000
+//float R4 = 10000; //10K sensor resistor   10000
 //-----------------------------------------------------------
 
 //----------------------------------------------------------- COOLANT SENSORS
@@ -217,10 +218,10 @@ void loop()
   //readPumpRpmAndFlowMeter();
 
   static unsigned long previousMillis2 = 0;
-  if ((millis() - previousMillis2) >= 500)
+  if ((millis() - previousMillis2) >= 1000)
   { // Millise
     readAllSensors();
-    previousMillis2 += 500;
+    previousMillis2 += 1000;
   }
 
   /*
@@ -237,7 +238,6 @@ void loop()
   {
     case INITMODE:
       writeOnPump(0); // On pump
-      dacSendByte(127); //half gear
       softStartPeltier();
       state = IDLEMODE;
       break;
@@ -507,22 +507,18 @@ void readTempCoolant(uint8_t port)
   switch (port)
   {
     case 0:
-      R1 = 10000;
       filter7.AddValue(getRes10kTemperature(Myads.getAds3(0)));
       tempSenCoolant[0] = filter7.GetLowPass();
       break;
     case 1:
-
       filter8.AddValue(getRes10kTemperature(Myads.getAds3(1)));
       tempSenCoolant[1] = filter8.GetLowPass();
       break;
     case 2:
-
       filter9.AddValue(getRes10kTemperature(Myads.getAds3(2)));
       tempSenCoolant[2] = filter9.GetLowPass();
       break;
     case 3:
-
       filter10.AddValue(getRes10kTemperature(Myads.getAds3(3)));
       tempSenCoolant[3] = filter10.GetLowPass();
       break;
@@ -536,10 +532,14 @@ void readTempPel()
 {
   for (uint8_t i = 0; i < 10; i++) {
 
+    /*volt = abs(Myads.getAds1(i)) * 0.125; //0.125->1 gain
+      buffercon = (vin / volt) - 1;
+      R2 = R1 * buffercon;
+    */
+
     switch (i)
     {
       case 0:
-        R1 = 5000;
         filter1.AddValue(getRes5kTemperature(getOhms(Myads.getAds0(0))));
         tempsPel[i] = filter1.GetLowPass();
         break;
@@ -572,12 +572,10 @@ void readTempPel()
         tempsPel[i] = filter5.GetLowPass();
         break;
       case 8:
-        R1 = 15000;
         filter5.AddValue(getRes10kTemperature(getOhms(Myads.getAds2(0))));
         tempsPel[i] = filter5.GetLowPass();
         break;
       case 9:
-        R1 = 15000;
         filter6.AddValue(getRes10kTemperature(getOhms(Myads.getAds2(1))));
         tempsPel[i] = filter5.GetLowPass();
         break;
@@ -643,80 +641,76 @@ void writeTempPel(uint8_t number, uint8_t cmode, uint8_t power)
   {
     case 0:
       ledcWrite(PWM_CHANNEL[number], power); //ledChannel, dutyCycle
-      switch (cmode) {
-        case 0:
-          digitalWrite(S1_C1, HIGH);
-          digitalWrite(S1_C2, LOW);
-          break;
-
-        case 1:
-          digitalWrite(S1_C1, LOW);
-          digitalWrite(S1_C2, HIGH);
-          break;
-
-        case 2:
-          digitalWrite(S1_C1, LOW);
-          digitalWrite(S1_C2, LOW);
-          break;
+      if (cmode == 0)
+      {
+        digitalWrite(S1_C1, HIGH);
+        digitalWrite(S1_C2, LOW);
+      }
+      else if (cmode == 1)
+      {
+        digitalWrite(S1_C1, LOW);
+        digitalWrite(S1_C2, HIGH);
+      }
+      else if (cmode == 2)
+      {
+        digitalWrite(S1_C1, LOW);
+        digitalWrite(S1_C2, LOW);
       }
       break;
     case 1:
       ledcWrite(PWM_CHANNEL[number], power); //ledChannel, dutyCycle
-      switch (cmode) {
-        case 0:
-          digitalWrite(S2_C1, HIGH);
-          digitalWrite(S2_C2, LOW);
-          break;
-
-        case 1:
-          digitalWrite(S2_C1, LOW);
-          digitalWrite(S2_C2, HIGH);
-          break;
-
-        case 2:
-          digitalWrite(S2_C1, LOW);
-          digitalWrite(S2_C2, LOW);
-          break;
+      if (cmode == 0)
+      {
+        digitalWrite(S2_C1, HIGH);
+        digitalWrite(S2_C2, LOW);
       }
+      else if (cmode == 1)
+      {
+        digitalWrite(S2_C1, LOW);
+        digitalWrite(S2_C2, HIGH);
+      }
+      else if (cmode == 2)
+      {
+        digitalWrite(S2_C1, LOW);
+        digitalWrite(S2_C2, LOW);
+      }
+
       break;
     case 2:
       ledcWrite(PWM_CHANNEL[number], power); //ledChannel, dutyCycle
-      switch (cmode) {
-        case 0:
-          digitalWrite(S3_C1, HIGH);
-          digitalWrite(S3_C2, LOW);
-          break;
-
-        case 1:
-          digitalWrite(S3_C1, LOW);
-          digitalWrite(S3_C2, HIGH);
-          break;
-
-        case 2:
-          digitalWrite(S3_C1, LOW);
-          digitalWrite(S3_C2, LOW);
-          break;
+      if (cmode == 0)
+      {
+        digitalWrite(S3_C1, HIGH);
+        digitalWrite(S3_C2, LOW);
+      }
+      else if (cmode == 1)
+      {
+        digitalWrite(S3_C1, LOW);
+        digitalWrite(S3_C2, HIGH);
+      }
+      else if (cmode == 2)
+      {
+        digitalWrite(S3_C1, LOW);
+        digitalWrite(S3_C2, LOW);
       }
       break;
     case 3:
       ledcWrite(PWM_CHANNEL[number], power); //ledChannel, dutyCycle
-      switch (cmode) {
-        case 0:
-          digitalWrite(S4_C1, HIGH);
-          digitalWrite(S4_C2, LOW);
-          break;
-
-        case 1:
-          digitalWrite(S4_C1, LOW);
-          digitalWrite(S4_C2, HIGH);
-          break;
-
-        case 2:
-          digitalWrite(S4_C1, LOW);
-          digitalWrite(S4_C2, LOW);
-          break;
+      if (cmode == 0)
+      {
+        digitalWrite(S4_C1, HIGH);
+        digitalWrite(S4_C2, LOW);
       }
-
+      else if (cmode == 1)
+      {
+        digitalWrite(S4_C1, LOW);
+        digitalWrite(S4_C2, HIGH);
+      }
+      else if (cmode == 2)
+      {
+        digitalWrite(S4_C1, LOW);
+        digitalWrite(S4_C2, LOW);
+      }
       break;
   }
 }
